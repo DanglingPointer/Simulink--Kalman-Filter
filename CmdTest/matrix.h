@@ -157,7 +157,7 @@ namespace mvkf
 		IMatrix *p = first->Copy();
 		for (uint row = 0; row < first->nrow; ++row)
 			for (uint col = 0; col < first->ncol; ++col)
-				p->at(row, col) += second->at(row, col);
+				p->at(row, col) = first->at(row, col) + second->at(row, col);
 		return p;
 	}
 	IMatrix* Substract(const IMatrix *first, const IMatrix *second)
@@ -167,7 +167,7 @@ namespace mvkf
 		IMatrix *p = first->Copy();
 		for (uint row = 0; row < first->nrow; ++row)
 			for (uint col = 0; col < first->ncol; ++col)
-				p->at(row, col) -= second->at(row, col);
+				p->at(row, col) = first->at(row,col) - second->at(row, col);
 		return p;
 	}
 	IMatrix* Multiply(const IMatrix *first, const IMatrix *second, IMatrix *result)
@@ -185,6 +185,8 @@ namespace mvkf
 	}
 	IMatrix* Multiply(const IMatrix *first, const IMatrix *second, const IMatrix *third, IMatrix *result)
 	{	// Writes result to *result
+		if (!(result->nrow == first->nrow && result->ncol == third->ncol))
+			throw std::invalid_argument("Multiply(3)");
 		class Temp
 		{	// Ugly, but necessary
 		public:

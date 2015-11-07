@@ -1,4 +1,4 @@
-#include"matrix.h"
+#include"filter.h"
 using namespace mvkf;
 int main()
 {
@@ -15,11 +15,33 @@ int main()
 	Print(p);
 	std::cout << "Det = " << p->Det() << '\n';
 
-	IMatrix *pnew = p->Inverse();
-	Print(pnew);
+	IMatrix *pinv = p->Inverse();
+	Print(pinv);
+
+	IMatrix *pmult = pinv->Copy();
+	Multiply(p, pinv, pmult);
+	Print(pmult);
+
+	IMatrix *pmultmult = pinv->Copy();
+	Multiply(p, pinv, pmult, pmultmult);
+	Print(pmultmult);
+
+	IMatrix* peye = p->Eye();
+	Print(peye);
+
+	IMatrix* pone = new Matrix<1, 1>;
+	IMatrix* poneeye = pone->Eye();
+	Print(pone);
+	Print(poneeye);
+
 
 	delete p;
-	delete pnew;
+	delete pinv;
+	delete pmult;
+	delete pmultmult;
+	delete peye;
+	delete pone;
+	delete poneeye;
 	system("pause");
 	return 0;
 }

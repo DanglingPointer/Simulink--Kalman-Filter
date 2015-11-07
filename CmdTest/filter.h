@@ -27,6 +27,9 @@ namespace mvkf
 		// ---Filter loop functions---
 		void ComputeGain()
 		{	//p.146 eq(4.2.17)
+			if (!m_initialized)
+				throw std::runtime_error("Filter::ComputeGain()");
+
 			IMatrix *H = m_h(m_time);
 			IMatrix *H_T = H->Transpose();
 			IMatrix *R = m_r(m_time);
@@ -48,6 +51,9 @@ namespace mvkf
 		}
 		void UpdateEstimate(IMatrix *measurement)
 		{	// p.144 eq(4.2.8) expanded
+			if (!m_initialized)
+				throw std::runtime_error("Filter::UpdateEstimate()");
+
 			if (m_psv != nullptr)
 				delete m_psv;
 
@@ -67,6 +73,9 @@ namespace mvkf
 		}
 		void ComputeCovariance()
 		{	// p.146 eq(4.2.18)
+			if (!m_initialized)
+				throw std::runtime_error("Filter::ComputeCovariance()");
+
 			if (m_pec != nullptr)
 				delete m_pec;
 			
@@ -95,7 +104,10 @@ namespace mvkf
 			delete gainT; delete thirdprod;
 		}
 		void ProjectAhead(bool increment_time = true)
-		{
+		{	// p.147 eq(4.2.23) & (4.2.25)
+			if (!m_initialized)
+				throw std::runtime_error("Filter::ProjectAhead()");
+
 			IMatrix *phi = m_phi(m_time);
 			IMatrix *phiT = phi->Transpose();
 			IMatrix *Q = m_q(m_time);
@@ -121,12 +133,13 @@ namespace mvkf
 			m_peca = pinitec;
 			if (m_psva != nullptr) delete m_psva;
 			m_psva = pinitsv;
+			m_initialized = true;
 		}
-		void set_Time(unsigned long time)
+		void set_Time(unsigned long long time)
 		{
 			m_time = time;
 		}
-		void Reset()
+		void Reset(bool full = false)
 		{
 			if (m_pec != nullptr) delete m_pec;
 			m_pec = nullptr;
@@ -134,13 +147,22 @@ namespace mvkf
 			m_psv = nullptr;
 			if (m_pgain != nullptr) delete m_pgain;
 			m_pgain = nullptr;
+
+			if (full)
+			{
+				if (m_peca != nullptr) delete m_peca;
+				m_peca = nullptr;
+				if (m_psva != nullptr) delete m_psva;
+				m_psva = nullptr;
+				m_initialized = false;
+			}
 		}
 		// ---Accessors---
 		double get_State(uint statenum) const // statenum from 1
 		{
 			return m_psv->at(statenum - 1, 0);
 		}
-		IMatrix* get_StateM() const
+		IMatrix* get_StateM() const	// Creates a new dynamic object!
 		{
 			return m_psv->Copy();
 		}

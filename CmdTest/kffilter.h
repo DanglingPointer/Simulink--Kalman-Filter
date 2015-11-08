@@ -1,21 +1,22 @@
 #pragma once
-#include"matrix.h"
 /*
- * Generic Kalman-filter (no use of MatLab/Simulink libraries).
+ * Generic Kalman-filter (no use of Simulink API).
  * User has to learn IMatrix class in order to implement state matrix functions
  * as well as initial states vector and initial error covariance matrix.
  * For order of use of the loop functions see Brown&Whang p147.
  */
+#include"kfmatrix.h"
 namespace mvkf
 {
 	class Filter
 	{
 	public:
-		Filter(IMatrix*(*phi)(unsigned long long), IMatrix*(*h)(unsigned long long), 
-			   IMatrix*(*q)(unsigned long long), IMatrix*(*r)(unsigned long long))
-			:m_time(0), m_initialized(false), m_phi(phi), m_h(h), m_q(q), m_r(r), 
+		Filter(IMatrix*(*phi)(double), IMatrix*(*h)(double), 
+			   IMatrix*(*q)(double), IMatrix*(*r)(double))
+			:m_time(0), m_initialized(false), m_phi(phi), m_h(h), m_q(q), m_r(r),
 			m_pec(nullptr), m_peca(nullptr), m_psv(nullptr), m_psva(nullptr), m_pgain(nullptr)
 		{ }
+		Filter(const Filter&) = delete;
 		~Filter()
 		{
 			if (m_pec != nullptr) delete m_pec;
@@ -49,7 +50,7 @@ namespace mvkf
 			delete parenth; delete parinv;
 			delete H; delete H_T;
 		}
-		void UpdateEstimate(IMatrix *measurement)
+		void UpdateEstimate(const IMatrix* measurement)
 		{	// p.144 eq(4.2.8) expanded
 			if (!m_initialized)
 				throw std::runtime_error("Filter::UpdateEstimate()");
@@ -103,7 +104,7 @@ namespace mvkf
 			delete parenth; delete parenthT; delete secondprod;
 			delete gainT; delete thirdprod;
 		}
-		void ProjectAhead(bool increment_time = true)
+		void ProjectAhead()
 		{	// p.147 eq(4.2.23) & (4.2.25)
 			if (!m_initialized)
 				throw std::runtime_error("Filter::ProjectAhead()");
@@ -121,21 +122,19 @@ namespace mvkf
 			Multiply(phi, m_pec, phiT, prod);
 			m_peca = Add(prod, Q);
 
-			if (increment_time) ++m_time;
-
 			delete phi; delete phiT; delete Q;
 			delete prod;
 		}
 		// ---Mutators---
-		void InitStates(IMatrix *pinitsv, IMatrix *pinitec)
+		void InitStates(const IMatrix *pinitsv, const IMatrix *pinitec)
 		{
 			if (m_peca != nullptr) delete m_peca;
-			m_peca = pinitec;
+			m_peca = pinitec->Copy();
 			if (m_psva != nullptr) delete m_psva;
-			m_psva = pinitsv;
+			m_psva = pinitsv->Copy();
 			m_initialized = true;
 		}
-		void set_Time(unsigned long long time)
+		void set_Time(double time)
 		{
 			m_time = time;
 		}
@@ -158,22 +157,26 @@ namespace mvkf
 			}
 		}
 		// ---Accessors---
-		double get_State(uint statenum) const // statenum from 1
+		double get_State(uint statenum) const // statenum from 0
 		{
-			return m_psv->at(statenum - 1, 0);
+			return m_psv->at(statenum, 0);
 		}
 		IMatrix* get_StateM() const	// Creates a new dynamic object!
 		{
 			return m_psv->Copy();
 		}
+		bool Initialized() const
+		{
+			return m_initialized;
+		}
 	private:
-		unsigned long long m_time;
+		double m_time;
 		bool m_initialized;
 		// System matrices are user-defined functions of time:
-		IMatrix*(*m_phi)(unsigned long long);
-		IMatrix*(*m_h)(unsigned long long);
-		IMatrix*(*m_q)(unsigned long long);
-		IMatrix*(*m_r)(unsigned long long);
+		IMatrix*(*m_phi)(double);
+		IMatrix*(*m_h)(double);
+		IMatrix*(*m_q)(double);
+		IMatrix*(*m_r)(double);
 		// Data:
 		IMatrix *m_pec;		// error covariance
 		IMatrix *m_peca;	// error covariance projection ahead

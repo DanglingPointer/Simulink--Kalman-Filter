@@ -18,12 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KalmanFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matrix.h">
+    <ClInclude Include="kfmatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filter.h">
+    <ClInclude Include="kfudf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kffilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

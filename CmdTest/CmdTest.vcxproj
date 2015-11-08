@@ -74,6 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Program Files\Matlab\R2015a\simulink\include;C:\Program Files\Matlab\R2015a\extern\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -147,10 +148,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="KalmanFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="filter.h" />
-    <ClInclude Include="matrix.h" />
+    <ClInclude Include="kffilter.h" />
+    <ClInclude Include="kfmatrix.h" />
+    <ClInclude Include="kfudf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

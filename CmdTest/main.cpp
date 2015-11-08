@@ -1,5 +1,5 @@
 // For debugging purposes only
-#include"filter.h"
+#include"kffilter.h"
 using namespace mvkf;
 int main()
 {
@@ -14,6 +14,8 @@ int main()
 	p->at(2, 1) = 4;
 	p->at(2, 2) = -2;
 	Print(p);
+	IMatrix *pcpy = p->Copy();
+	Print(pcpy);
 	std::cout << "Det = " << p->Det() << '\n';
 
 	IMatrix *pinv = p->Inverse();
@@ -37,6 +39,7 @@ int main()
 
 
 	delete p;
+	delete pcpy;
 	delete pinv;
 	delete pmult;
 	delete pmultmult;

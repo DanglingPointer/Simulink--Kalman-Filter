@@ -15,8 +15,7 @@ namespace mvkf
 		{ }
 		IMatrix(const IMatrix&) = delete;
 	public:
-		virtual ~IMatrix()
-		{ }
+		virtual ~IMatrix() { }
 		const uint nrow;
 		const uint ncol;
 		virtual double at(uint row, uint col) const = 0;
@@ -53,10 +52,9 @@ namespace mvkf
 		{
 			for (uint i = 0; i < nrow*ncol; ++i)
 				m_data[i] = 0;
-			if (nrow == ncol && is_eye)
+			if (is_eye && nrow == ncol)
 				for (uint i = 0; i < nrow; ++i)
 					at(i, i) = 1;
-
 		}
 		Matrix(const myt&) = delete;
 		double at(uint row, uint col) const
@@ -74,22 +72,22 @@ namespace mvkf
 		IMatrix* Copy() const
 		{
 			myt *pnew = new myt;
-			std::memcpy(pnew->m_data, m_data, n_rows*n_cols*sizeof(*m_data));
+			std::memcpy(pnew->m_data, m_data, sizeof m_data);
 			return static_cast<IMatrix*>(pnew);
 		}
 		IMatrix* Transpose() const
 		{
-			Matrix<n_rows, n_cols> *pnew = new Matrix<n_cols, n_rows>;
+			IMatrix *pnew = new Matrix<n_cols, n_rows>;
 			for (uint row = 0; row < pnew->nrow; ++row)
 				for (uint col = 0; col < pnew->ncol; ++col)
 					pnew->at(row, col) = at(col, row);
-			return static_cast<IMatrix*>(pnew);
+			return pnew;
 		}
 		IMatrix* Eye() const
 		{
 			if (nrow != ncol)
 				throw std::invalid_argument("Matrix::Eye()");
-			myt *pnew = new myt(true);
+			IMatrix *pnew = new myt(true);
 			return pnew;
 		}
 		double Det() const;
@@ -141,7 +139,7 @@ namespace mvkf
 	{
 		return at(0, 0);
 	}
-	// Creates a new (dynamic) matrix without drow and dcol
+	// Creates a new (dynamic) matrix without norow and nocol
 	template<uint n_rows, uint n_cols> inline IMatrix* Matrix<n_rows, n_cols>::Minormat(uint norow, uint nocol) const
 	{
 		IMatrix *pnew = new Matrix<n_rows - 1, n_cols - 1>;

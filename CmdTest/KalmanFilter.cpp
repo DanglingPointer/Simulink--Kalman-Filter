@@ -1,13 +1,13 @@
 /*
- * Integration of filter with Simulink API as well as
- * user-specified functions for obtaining system matrices
+ * Incorporation of filter into a Simulink S-function
+ * using Simulink API.
  * This file is to be compiled to a mex-file
  */
+#include"kffilter.h"
+#include"kfudf.h"
 #define S_FUNCTION_NAME KalmanFilter
 #define S_FUNCTION_LEVEL 2
 #include "simstruc.h"
-#include"kffilter.h"
-#include"kfudf.h"
 using namespace mvkf;
 
 #define MDL_INITIAL_SIZES
@@ -34,8 +34,7 @@ static void mdlInitializeSizes(SimStruct *S)
 	
 	ssSetSimStateCompliance(S, USE_CUSTOM_SIM_STATE);
 
-	ssSetOptions(S, SS_OPTION_CALL_TERMINATE_ON_EXIT |
-				 SS_OPTION_WORKS_WITH_CODE_REUSE);
+	ssSetOptions(S, SS_OPTION_CALL_TERMINATE_ON_EXIT | SS_OPTION_WORKS_WITH_CODE_REUSE);
 }
 #define MDL_INITIALIZE_SAMPLE_TIMES
 static void mdlInitializeSampleTimes(SimStruct *S)
@@ -46,7 +45,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-	Filter *pf = new Filter(Calc_phi, Calc_h, Calc_q, Calc_r);
+	Filter *pf = new Filter(CalcPhi, CalcH, CalcQ, CalcR);
 
 	IMatrix *pinitec = new Matrix<5,5>;
 	pinitec->at(1, 1) = 1;
@@ -92,7 +91,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	// Setting outputs
 	real_T *y = ssGetOutputPortRealSignal(S, 0);
 	y[0] = (real_T)(pf->get_State(0));			// let's hope they are convertible
-	y[1] = (real_T)(pf->get_State(1));			// suppose the right states are no.0 and no.1
+	y[1] = (real_T)(pf->get_State(1));			// assume the right states are no.0 and no.1
 }
 static void mdlTerminate(SimStruct *S)
 {

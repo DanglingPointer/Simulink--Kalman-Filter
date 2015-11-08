@@ -13,7 +13,7 @@ namespace mvkf
 	public:
 		Filter(IMatrix*(*phi)(double), IMatrix*(*h)(double), 
 			   IMatrix*(*q)(double), IMatrix*(*r)(double))
-			:m_time(0), m_initialized(false), m_phi(phi), m_h(h), m_q(q), m_r(r),
+			:m_time(0.0), m_initialized(false), m_phi(phi), m_h(h), m_q(q), m_r(r),
 			m_pec(nullptr), m_peca(nullptr), m_psv(nullptr), m_psva(nullptr), m_pgain(nullptr)
 		{ }
 		Filter(const Filter&) = delete;
@@ -25,9 +25,12 @@ namespace mvkf
 			if (m_psva != nullptr) delete m_psva;
 			if (m_pgain != nullptr) delete m_pgain;
 		}
-		// ---Filter loop functions---
+		/* 
+		 * Filter loop functions
+		 */
+		// p.146 eq(4.2.17)
 		void ComputeGain()
-		{	//p.146 eq(4.2.17)
+		{	
 			if (!m_initialized)
 				throw std::runtime_error("Filter::ComputeGain()");
 
@@ -50,8 +53,9 @@ namespace mvkf
 			delete parenth; delete parinv;
 			delete H; delete H_T;
 		}
+		// p.144 eq(4.2.8) expanded
 		void UpdateEstimate(const IMatrix* measurement)
-		{	// p.144 eq(4.2.8) expanded
+		{	
 			if (!m_initialized)
 				throw std::runtime_error("Filter::UpdateEstimate()");
 
@@ -72,8 +76,9 @@ namespace mvkf
 			delete H; delete firstprod;
 			delete secondprod; delete sum;
 		}
+		// p.146 eq(4.2.18)
 		void ComputeCovariance()
-		{	// p.146 eq(4.2.18)
+		{
 			if (!m_initialized)
 				throw std::runtime_error("Filter::ComputeCovariance()");
 
@@ -85,7 +90,7 @@ namespace mvkf
 
 			IMatrix *eye = m_peca->Eye();
 			IMatrix *firstprod = m_peca->Copy();
-			Multiply(m_pgain, H, firstprod); //K*H
+			Multiply(m_pgain, H, firstprod); // K*H
 
 			IMatrix *parenth = Substract(eye, firstprod); // (I-K*H)
 			IMatrix *parenthT = parenth->Transpose();
@@ -104,8 +109,9 @@ namespace mvkf
 			delete parenth; delete parenthT; delete secondprod;
 			delete gainT; delete thirdprod;
 		}
+		// p.147 eq(4.2.23) & (4.2.25)
 		void ProjectAhead()
-		{	// p.147 eq(4.2.23) & (4.2.25)
+		{
 			if (!m_initialized)
 				throw std::runtime_error("Filter::ProjectAhead()");
 
@@ -125,7 +131,9 @@ namespace mvkf
 			delete phi; delete phiT; delete Q;
 			delete prod;
 		}
-		// ---Mutators---
+		/*
+		 * Mutator functions
+		 */
 		void InitStates(const IMatrix *pinitsv, const IMatrix *pinitec)
 		{
 			if (m_peca != nullptr) delete m_peca;
@@ -156,12 +164,16 @@ namespace mvkf
 				m_initialized = false;
 			}
 		}
-		// ---Accessors---
-		double get_State(uint statenum) const // statenum from 0
+		/*
+		 * Accessor functions
+		 */
+		// statenum starts at 0
+		double get_State(uint statenum) const
 		{
 			return m_psv->at(statenum, 0);
 		}
-		IMatrix* get_StateM() const	// Creates a new dynamic object!
+		// Creates a new dynamic object
+		IMatrix* get_StateM() const
 		{
 			return m_psv->Copy();
 		}

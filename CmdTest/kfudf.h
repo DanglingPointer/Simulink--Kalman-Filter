@@ -4,19 +4,19 @@
  */
 #include"kfmatrix.h"
 using namespace mvkf;
-IMatrix* Calc_phi(double time)
+IMatrix* CalcPhi(double time)
 {
 	return nullptr;
 }
-IMatrix* Calc_h(double time)
+IMatrix* CalcH(double time)
 {
 	return nullptr;
 }
-IMatrix* Calc_q(double time)
+IMatrix* CalcQ(double time)
 {
 	return nullptr;
 }
-IMatrix* Calc_r(double time)
+IMatrix* CalcR(double time)
 {
 	return nullptr;
 }

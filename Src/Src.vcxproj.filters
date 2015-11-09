@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="ConsoleDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KalmanFilter.cpp">
@@ -26,10 +26,10 @@
     <ClInclude Include="kfmatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kfudf.h">
+    <ClInclude Include="kffilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kffilter.h">
+    <ClInclude Include="kfudf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

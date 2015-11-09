@@ -30,7 +30,7 @@ static void mdlInitializeSizes(SimStruct *S)
 
 	ssSetNumSampleTimes(S, 1);					// 1 block-based sample time
 
-	ssSetNumPWork(S, 1);						// reserve 1 pointer for a Filter object
+	ssSetNumPWork(S, 2);						// reserve 2 pointers for our objects
 	
 	ssSetSimStateCompliance(S, USE_CUSTOM_SIM_STATE);
 
@@ -45,27 +45,19 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-	Filter *pf = new Filter(CalcPhi, CalcH, CalcQ, CalcR);
-
-	IMatrix *pinitec = new Matrix<5,5>;
-	pinitec->at(1, 1) = 1;
-	pinitec->at(2, 2) = 0.013;
-	pinitec->at(3, 3) = 3.14159265359*3.14159265359;
-	pinitec->at(4, 4) = 1;
-	pinitec->at(5, 5) = 0.00025;
-	IMatrix *pinitsv = new Matrix<5, 1>;
-
-	pf->InitStates(pinitsv, pinitec);
-	delete pinitsv; delete pinitec;
+	ISysMat *psm = new SysMat;
+	Filter *pf = new Filter(psm);
+	pf->InitStates();
 
 	ssGetPWork(S)[0] = (void*)pf;
+	ssGetPWork(S)[1] = (void*)psm;
 }
 #define MDL_UPDATE
 static void mdlUpdate(SimStruct *S, int_T tid)
 {
 	Filter *pf = (Filter*)ssGetPWork(S)[0];
 	double time = (double)ssGetT(S);
-	pf->ProjectAhead();
+	pf->ProjectAhead();	// må hente input!
 	pf->set_Time(time);
 }
 #define MDL_OUTPUTS
@@ -80,9 +72,10 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	double inputs[2] = {
 		(double)(*u[0]) , (double)(*u[1]) };	// let's hope they are convertible
 
-	IMatrix *pinp = new Matrix<2, 1>;
+	IMatrix *pinp = new Matrix<2, 1>; // wrong dimensions! should be <1,1>
 	pinp->at(0, 0) = inputs[0];
 	pinp->at(1, 0) = inputs[1];
+
 	pf->UpdateEstimate(pinp);
 	delete pinp;
 
@@ -90,13 +83,14 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
 	// Setting outputs
 	real_T *y = ssGetOutputPortRealSignal(S, 0);
-	y[0] = (real_T)(pf->get_State(0));			// let's hope they are convertible
-	y[1] = (real_T)(pf->get_State(1));			// assume the right states are no.0 and no.1
+	y[0] = (real_T)(pf->get_State(2));			// let's hope they are convertible
+	y[1] = (real_T)(pf->get_State(4));			// 2 = psi, 4 = b
 }
 static void mdlTerminate(SimStruct *S)
 {
 	Filter *pf = (Filter*)ssGetPWork(S)[0];
-	delete pf;
+	ISysMat *psm = (ISysMat*)ssGetPWork(S)[1];
+	delete pf; delete psm;
 }
 #ifdef MATLAB_MEX_FILE
  #include"simulink.c"

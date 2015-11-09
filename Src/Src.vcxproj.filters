@@ -23,13 +23,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="kfmatrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="kffilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="kfudf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kfsimplemat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

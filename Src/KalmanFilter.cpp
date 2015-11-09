@@ -47,7 +47,6 @@ static void mdlStart(SimStruct *S)
 {
 	ISysMat *psm = new SysMat;
 	Filter *pf = new Filter(psm);
-	pf->InitStates();							// inital states from *psm
 	ssGetPWork(S)[0] = (void*)pf;
 	ssGetPWork(S)[1] = (void*)psm;
 }

@@ -9,177 +9,82 @@
  * x[k+1] = A*x[k] + B*u[k] + G*w
  * y[k] = C*x[k] + v
  */
-#include"kfmatrix.h"
+#include"kfsimplemat.h"
 namespace mvkf
 {
 	// User must derive from this class
 	__interface ISysMat
 	{
-		const IMatrix* get_A() const;
-		const IMatrix* get_B() const;
-		const IMatrix* get_G() const;
-		const IMatrix* get_C() const;
-		const IMatrix* get_Q() const;
-		const IMatrix* get_R() const;
-		const IMatrix* get_InitSV() const;
-		const IMatrix* get_InitCov() const;
-		void set_States(const IMatrix *states);
+		const Matrix& get_A() const;
+		const Matrix& get_B() const;
+		const Matrix& get_G() const;
+		const Matrix& get_C() const;
+		const Matrix& get_Q() const;
+		const Matrix& get_R() const;
+		const Matrix& get_InitSV() const;
+		const Matrix& get_InitCov() const;
+		void set_States(const Matrix *states);
 		void set_Time(double time);
 	};
 	class Filter
 	{
 	public:
-		Filter(ISysMat *sm) :m_initialized(false), m_psysmat(sm),
-			m_pec(nullptr), m_peca(nullptr), m_psv(nullptr), m_psva(nullptr), m_pgain(nullptr)
-		{ }
-		Filter(const Filter&) = delete;
-		~Filter()
+		Filter(ISysMat *sm) :m_psysmat(sm),
+			m_ec(m_psysmat->get_InitCov()), m_eca(m_psysmat->get_InitCov()), m_sv(m_psysmat->get_InitSV()), 
+			m_sva(m_psysmat->get_InitSV()), m_gain(m_psysmat->get_C().Transpose())
 		{
-			if (m_pec != nullptr) delete m_pec;
-			if (m_peca != nullptr) delete m_peca;
-			if (m_psv != nullptr) delete m_psv;
-			if (m_psva != nullptr) delete m_psva;
-			if (m_pgain != nullptr) delete m_pgain;
+			m_psysmat->set_States(&m_sv);
 		}
+		Filter(const Filter&) = delete;
 		/* 
 		 * Filter loop functions
 		 */
 		// p.146 eq(4.2.17)
 		void ComputeGain()
-		{	
-			if (!m_initialized)
-				throw std::runtime_error("Filter::ComputeGain()");
-
-			const IMatrix *C = m_psysmat->get_C();
-			IMatrix *C_T = C->Transpose();
-			const IMatrix *R = m_psysmat->get_R();
-
-			if (m_pgain == nullptr)
-				m_pgain = C_T->Copy();	// dim(K) = dim(C^T)
-
-			IMatrix *innerproduct = R->Copy();
-			Multiply(C, m_peca, C_T, innerproduct);
-
-			IMatrix *parenth = Add(innerproduct, R);
-			IMatrix *parinv = parenth->Inverse();
-
-			Multiply(m_peca, C_T, parinv, m_pgain);
-
-			delete innerproduct;
-			delete parenth; delete parinv;
-			delete C_T;
+		{
+			Matrix C = m_psysmat->get_C();
+			Matrix parenth = ((C * m_eca) * C.Transpose()) + m_psysmat->get_R();
+			m_gain = (m_eca * C.Transpose()) * parenth.Inverse();
+			Print(m_gain);
 		}
 		// p.144 eq(4.2.8) expanded
-		void UpdateEstimate(const IMatrix *y)
-		{	
-			if (!m_initialized)
-				throw std::runtime_error("Filter::UpdateEstimate()");
-
-			if (m_psv != nullptr)
-				delete m_psv;
-
-			const IMatrix *C = m_psysmat->get_C();
-			
-			IMatrix *firstprod = m_psva->Copy();
-			Multiply(m_pgain, y, firstprod);
-
-			IMatrix *secondprod = m_psva->Copy();
-			Multiply(m_pgain, C, m_psva, secondprod);
-
-			IMatrix *sum = Add(m_psva, firstprod);
-			m_psv = Substract(sum, secondprod);
-			
-			delete firstprod; delete secondprod; delete sum;
+		void UpdateEstimate(const Matrix& y)
+		{
+			Matrix C = m_psysmat->get_C();
+			m_sv = m_sva + (m_gain * (y - (C * m_sva)));
+			Print(m_sv);
 		}
 		// p.146 eq(4.2.18)
 		void ComputeCovariance()
 		{
-			if (!m_initialized)
-				throw std::runtime_error("Filter::ComputeCovariance()");
-
-			if (m_pec != nullptr)
-				delete m_pec;
-			
-			const IMatrix *C = m_psysmat->get_C();
-			const IMatrix *R =m_psysmat->get_R();
-
-			IMatrix *eye = m_peca->Eye();
-			IMatrix *firstprod = m_peca->Copy();
-			Multiply(m_pgain, C, firstprod); // K*C
-
-			IMatrix *parenth = Substract(eye, firstprod); // (I-K*C)
-			IMatrix *parenthT = parenth->Transpose();
-
-			IMatrix *secondprod = m_peca->Copy();
-			Multiply(parenth, m_peca, parenthT, secondprod); // (I-KC)(P-)(I-KC)^T
-
-			IMatrix *gainT = m_pgain->Transpose();
-
-			IMatrix *thirdprod = m_peca->Copy();
-			Multiply(m_pgain, R, gainT, thirdprod); // K*R*(K^T)
-
-			m_pec = Add(secondprod, thirdprod);
-
-			delete eye; delete firstprod;
-			delete parenth; delete parenthT; delete secondprod;
-			delete gainT; delete thirdprod;
+			Matrix C = m_psysmat->get_C();
+			Matrix R = m_psysmat->get_R();
+			Matrix I = m_eca.Eye();
+			Matrix parenth = I - (m_gain*C);
+			Matrix prod = (m_gain * R) * m_gain.Transpose();
+			m_ec = ((parenth * m_eca) * parenth.Transpose()) + prod;
+			Print(m_ec);
 		}
 		// assignment 5 prob.2 f) and g)
-		void ProjectAhead(const IMatrix *u)
+		void ProjectAhead(const Matrix& u)
 		{
-			if (!m_initialized)
-				throw std::runtime_error("Filter::ProjectAhead()");
-
-			const IMatrix *A = m_psysmat->get_A();
-			IMatrix *AT = A->Transpose();
-			const IMatrix *Q = m_psysmat->get_Q();
-			const IMatrix *B = m_psysmat->get_B();
-			const IMatrix *G = m_psysmat->get_G();
-			IMatrix *GT = G->Transpose();
-
-			if (m_peca != nullptr) delete m_peca;
-			if (m_psva != nullptr) delete m_psva;
-
-			IMatrix *firstprod = m_psv->Copy();
-			Multiply(A, m_psv, firstprod);
-
-			IMatrix *secondprod = m_psv->Copy();
-			Multiply(B, u, secondprod);
+			Matrix A = m_psysmat->get_A();
+			Matrix Q = m_psysmat->get_Q();
+			Matrix B = m_psysmat->get_B();
+			Matrix G = m_psysmat->get_G();
 			
-			m_psva = Add(firstprod, secondprod);
-
-			delete firstprod; delete secondprod;
-
-			firstprod = m_pec->Copy();
-			Multiply(A, m_pec, AT, firstprod);
-
-			secondprod = m_pec->Copy();
-			Multiply(G, Q, GT, secondprod);
-			m_peca = Add(firstprod, secondprod);
-
-			delete AT; delete GT;
-			delete firstprod; delete secondprod;
+			m_sva = (A * m_sv) + (B * u);
+			m_eca = ((A * m_ec) * A.Transpose()) + ((G * Q) * G.Transpose());
+			Print(m_sva); Print(m_eca);
 		}
 		/*
 		 * Mutator functions
 		 */
-		// Initial states from ISysMat object
-		void InitStates()
+		// Initial states from arguments
+		void InitStates(const Matrix &initsv, const Matrix &initcov)
 		{
-			if (m_peca != nullptr) delete m_peca;
-			m_peca = m_psysmat->get_InitCov()->Copy();
-			if (m_psva != nullptr) delete m_psva;
-			m_psva = m_psysmat->get_InitSV()->Copy();
-			m_initialized = true;
-		}
-		// Initial states from parameters
-		void InitStates(const IMatrix *initsv, const IMatrix *initcov)
-		{
-			if (m_peca != nullptr) delete m_peca;
-			m_peca = initcov->Copy();
-			if (m_psva != nullptr) delete m_psva;
-			m_psva = initsv->Copy();
-			m_initialized = true;
+			m_eca = initcov;
+			m_sva = initsv;
 		}
 		void set_Time(double time)
 		{
@@ -191,26 +96,21 @@ namespace mvkf
 		// statenum starts at 0
 		double get_State(uint statenum) const
 		{
-			return m_psv->at(statenum, 0);
+			return m_sv.at(statenum, 0);
 		}
 		// Doesn't create a new object
-		const IMatrix* get_Statevec() const
+		const Matrix& get_Statevec() const
 		{
-			return m_psv;
-		}
-		bool Initialized() const
-		{
-			return m_initialized;
+			return m_sv;
 		}
 	private:
-		bool m_initialized;
 		// Object for retrieving system matrices:
 		ISysMat *m_psysmat;
 		// Data:
-		IMatrix *m_pec;		// error covariance
-		IMatrix *m_peca;	// error covariance projection ahead
-		IMatrix *m_psv;		// states vector
-		IMatrix *m_psva;	// states vector projection ahead
-		IMatrix *m_pgain;	// Kalman gain
+		Matrix m_ec;		// error covariance
+		Matrix m_eca;	// error covariance projection ahead
+		Matrix m_sv;		// states vector
+		Matrix m_sva;	// states vector projection ahead
+		Matrix m_gain;	// Kalman gain
 	};
 } // namespace

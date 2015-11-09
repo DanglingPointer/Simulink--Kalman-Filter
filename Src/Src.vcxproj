@@ -152,7 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kffilter.h" />
-    <ClInclude Include="kfmatrix.h" />
+    <ClInclude Include="kfsimplemat.h" />
     <ClInclude Include="kfudf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

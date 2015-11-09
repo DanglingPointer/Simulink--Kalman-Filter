@@ -47,44 +47,54 @@ static void mdlStart(SimStruct *S)
 {
 	ISysMat *psm = new SysMat;
 	Filter *pf = new Filter(psm);
-	pf->InitStates();
-
+	pf->InitStates();							// inital states from *psm
 	ssGetPWork(S)[0] = (void*)pf;
 	ssGetPWork(S)[1] = (void*)psm;
 }
-#define MDL_UPDATE
-static void mdlUpdate(SimStruct *S, int_T tid)
-{
-	Filter *pf = (Filter*)ssGetPWork(S)[0];
-	double time = (double)ssGetT(S);
-	pf->ProjectAhead();	// må hente input!
-	pf->set_Time(time);
-}
+//#define MDL_UPDATE
+//static void mdlUpdate(SimStruct *S, int_T tid)	// mdlUpdate() shouldn't be here as 
+//{													// we have direct feedthrough and 
+//	Filter *pf = (Filter*)ssGetPWork(S)[0];			// no discrete states
+//	double time = (double)ssGetT(S);				// We don't use state vectors either
+//	pf->ProjectAhead();
+//	pf->set_Time(time);
+//}
 #define MDL_OUTPUTS
-static void mdlOutputs(SimStruct *S, int_T tid)
+static void mdlOutputs(SimStruct *S, int_T task_id)
 {
 	Filter *pf = (Filter*)ssGetPWork(S)[0];
+
+	// Step 1:
 	pf->ComputeGain();
 
-	// Getting inputs
-	InputRealPtrsType u = ssGetInputPortRealSignalPtrs(S, 0);
+	// Retrieving inputs:
+	InputRealPtrsType input = ssGetInputPortRealSignalPtrs(S, 0);
+	double inputs[2] = 
+	{ (double)(*input[0]) , (double)(*input[1]) };	// let's hope they are convertible
+	IMatrix *y = new Matrix<1, 1>;
+	y->at(0, 0) = inputs[0];						// measurement is first input
+	IMatrix *u = new Matrix<1, 1>;
+	u->at(0, 0) = inputs[1];						// reference signal is second input
 
-	double inputs[2] = {
-		(double)(*u[0]) , (double)(*u[1]) };	// let's hope they are convertible
+	// Step 2:
+	pf->UpdateEstimate(y);
+	delete y;
 
-	IMatrix *pinp = new Matrix<2, 1>; // wrong dimensions! should be <1,1>
-	pinp->at(0, 0) = inputs[0];
-	pinp->at(1, 0) = inputs[1];
-
-	pf->UpdateEstimate(pinp);
-	delete pinp;
-
+	// Step 3:
 	pf->ComputeCovariance();
 
-	// Setting outputs
-	real_T *y = ssGetOutputPortRealSignal(S, 0);
-	y[0] = (real_T)(pf->get_State(2));			// let's hope they are convertible
-	y[1] = (real_T)(pf->get_State(4));			// 2 = psi, 4 = b
+	// Step 4:
+	pf->ProjectAhead(u);
+	delete u;
+
+	// Updating time:
+	double time = (double)ssGetT(S);
+	pf->set_Time(time);
+
+	// Setting outputs:
+	real_T *output = ssGetOutputPortRealSignal(S, 0);
+	output[0] = (real_T)(pf->get_State(2));			// first output is psi
+	output[1] = (real_T)(pf->get_State(4));			// second output is b
 }
 static void mdlTerminate(SimStruct *S)
 {

@@ -2,7 +2,7 @@
 #include"filter.h"
 using namespace mvkf;
 
-typedef Matlist<5, 1, 1, 2, 1, 2, 1> Dim;
+typedef Matlist<5, 1, 1, 2, 1> Dim;
 
 class Sysmat :public ISysmat<Dim>
 {

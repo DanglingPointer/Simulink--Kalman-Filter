@@ -8,19 +8,19 @@
 namespace mvkf
 {
     // Matrix typelist
-    template<uint x_dim, uint u_dim, uint y_dim, uint q_dim, uint r_dim, uint w_dim, uint v_dim>
+    template<uint x_dim, uint u_dim, uint y_dim, uint w_dim, uint v_dim>
     struct Matlist
     {
         typedef Matrix<x_dim, x_dim> MatA;
-        typedef Matrix<x_dim, x_dim> MatP;    // ???
+        typedef Matrix<x_dim, x_dim> MatP;
         typedef Matrix<x_dim, u_dim> MatB;
         typedef Matrix<x_dim, w_dim> MatG;
         typedef Matrix<y_dim, x_dim> MatC;
         typedef Matrix<x_dim, y_dim> MatK;
         typedef Matrix<y_dim, u_dim> MatD;
         typedef Matrix<y_dim, v_dim> MatH;
-        typedef Matrix<q_dim, q_dim> MatQ;
-        typedef Matrix<r_dim, r_dim> MatR;
+        typedef Matrix<w_dim, w_dim> MatQ;
+        typedef Matrix<v_dim, v_dim> MatR;
         typedef Matrix<x_dim, 1> VecX;
         typedef Matrix<u_dim, 1> VecU;
         typedef Matrix<y_dim, 1> VecY;

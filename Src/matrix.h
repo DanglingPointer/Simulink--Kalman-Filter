@@ -173,7 +173,7 @@ namespace mvkf
                 }
             return temp;
         }
-        Matrix<1, 1> static Minormat(const Matrix<2, 2>& mat, uint norow, uint nocol)
+        static Matrix<1, 1> Minormat(const Matrix<2, 2>& mat, uint norow, uint nocol)
         {
             Matrix<1, 1> temp;
             uint row = (norow == 1) ? 0 : 1;

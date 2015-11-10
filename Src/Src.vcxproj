@@ -151,9 +151,9 @@
     <ClCompile Include="KalmanFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="kffilter.h" />
-    <ClInclude Include="kfsimplemat.h" />
-    <ClInclude Include="kfudf.h" />
+    <ClInclude Include="filter.h" />
+    <ClInclude Include="matrix.h" />
+    <ClInclude Include="udf.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

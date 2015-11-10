@@ -3,8 +3,8 @@
  * using Simulink API.
  * This file is to be compiled to a mex-file
  */
-#include"kffilter.h"
-#include"kfudf.h"
+#include"filter.h"
+#include"udf.h"
 #define S_FUNCTION_NAME KalmanFilter
 #define S_FUNCTION_LEVEL 2
 #include "simstruc.h"
@@ -45,8 +45,9 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 #define MDL_START
 static void mdlStart(SimStruct *S)
 {
-	ISysMat *psm = new SysMat;
-	Filter *pf = new Filter(psm);
+
+    Sysmat *psm = new Sysmat;
+    Filter<Dim>* pf = new Filter<Dim>(psm);
 	ssGetPWork(S)[0] = (void*)pf;
 	ssGetPWork(S)[1] = (void*)psm;
 }
@@ -61,7 +62,7 @@ static void mdlStart(SimStruct *S)
 #define MDL_OUTPUTS
 static void mdlOutputs(SimStruct *S, int_T task_id)
 {
-	Filter *pf = (Filter*)ssGetPWork(S)[0];
+	Filter<Dim> *pf = (Filter<Dim>*)ssGetPWork(S)[0];
 
 	// Step 1:
 	pf->ComputeGain();
@@ -70,10 +71,10 @@ static void mdlOutputs(SimStruct *S, int_T task_id)
 	InputRealPtrsType input = ssGetInputPortRealSignalPtrs(S, 0);
 	double inputs[2] = 
 	{ (double)(*input[0]) , (double)(*input[1]) };  // let's hope they are convertible
-	Matrix y(1,1);
-	y.at(0, 0) = inputs[0];                         // measurement is first input
-	Matrix u(1, 1);
-	u.at(0, 0) = inputs[1];                         // reference signal is second input
+	Matrix<1,1> y;
+	y(0, 0) = inputs[0];                         // measurement is first input
+	Matrix<1,1> u;
+	u(0, 0) = inputs[1];                         // reference signal is second input
 
 	// Step 2:
 	pf->UpdateEstimate(y);
@@ -95,8 +96,8 @@ static void mdlOutputs(SimStruct *S, int_T task_id)
 }
 static void mdlTerminate(SimStruct *S)
 {
-	Filter *pf = (Filter*)ssGetPWork(S)[0];
-	ISysMat *psm = (ISysMat*)ssGetPWork(S)[1];
+	Filter<Dim> *pf = (Filter<Dim>*)ssGetPWork(S)[0];
+	Sysmat *psm = (Sysmat*)ssGetPWork(S)[1];
 	delete pf; delete psm;
 }
 #ifdef MATLAB_MEX_FILE

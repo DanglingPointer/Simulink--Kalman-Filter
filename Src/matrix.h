@@ -1,5 +1,5 @@
 #pragma once
-// Matrix implementation using templates
+// Generic matrix implementation using templates
 #include<iostream>
 #include<cstring>
 namespace mvkf
@@ -11,8 +11,8 @@ namespace mvkf
         typedef Matrix<nrow, ncol> myt;
         enum
         {
-            NUM_ROW = nrow,
-            NUM_COL = ncol
+            NUMROW = nrow,
+            NUMCOL = ncol
         };
         Matrix()
         {
@@ -40,6 +40,17 @@ namespace mvkf
                         result(row, col) += (operator()(row, k) * rhs(k, col));
             return result;
         }
+        myt& operator*=(double factor)
+        {
+            for (uint i = 0; i < nrow*ncol; ++i)
+                m_data[i] *= factor;
+            return *this;
+        }
+        myt operator*(double factor) const
+        {
+            myt temp(*this);
+            return temp *= factor;
+        }
         myt operator+(const myt& rhs) const
         {
             myt result(*this);
@@ -57,6 +68,10 @@ namespace mvkf
     private:
         double m_data[nrow*ncol];
     };
+    template<uint nrow, uint ncol> Matrix<nrow, ncol> operator*(double factor, const Matrix<nrow, ncol>& rhs)
+    {
+        return rhs*factor;
+    }
 
 #define Coeff(j,k) ( ((j+k) % 2 == 0) ? 1:-1 )
 #define Det(mat) MatOperation::Determinant(mat)

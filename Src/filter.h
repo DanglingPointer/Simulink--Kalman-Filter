@@ -1,13 +1,16 @@
 #pragma once
 //
-// System:
-// x[k] = A*x[x] + B*u[k] + G*w[k]
-// y[k] = C*x[k] + D*u[k] + H*v[k]
+// Generic Kalman filter, no use of Simulink/Matlab API
+// User has to provide arguments for Matlist and implement a concretization of ISysmat
+//
+// System must be put on the form:
+// x[k+1] = A*x[x] + B*u[k] + G*w[k]    E{ww^T} = Q
+// y[k] = C*x[k] + D*u[k] + H*v[k]      E{vv^t} = R
 //
 #include"matrix.h"
 namespace mvkf
 {
-    // Matrix typelist
+    // Typelist for obtaining matrix types from vector dimensions
     template<uint x_dim, uint u_dim, uint y_dim, uint w_dim, uint v_dim>
     struct Matlist
     {
@@ -25,7 +28,7 @@ namespace mvkf
         typedef Matrix<u_dim, 1> VecU;
         typedef Matrix<y_dim, 1> VecY;
     };
-    // To be implemented by user; 'tlist_t' must be Matlist
+    // To be implemented by user; 'tlist_t' must be a parametrized Matlist
     template<class tlist_t> class ISysmat
     {
     public:
@@ -40,6 +43,7 @@ namespace mvkf
         typedef typename tlist_t::MatP MatP;
         typedef typename tlist_t::VecX VecX;
 
+        virtual ~ISysmat<tlist_t>(){ }
         virtual const MatA& get_A() const = 0;
         virtual const MatB& get_B() const = 0;
         virtual const MatG& get_G() const = 0;
@@ -72,38 +76,42 @@ namespace mvkf
         typedef typename tlist_t::VecY VecY;
         typedef typename tlist_t::VecU VecU;
 
-        Filter(ISysmat<tlist_t> *sysmat) :m_psysmat(sysmat), m_eca(m_psysmat->get_InitCov()), m_sva(m_psysmat->get_InitSV())
+        explicit Filter(ISysmat<tlist_t> *sysmat) :m_psysmat(sysmat), m_eca(m_psysmat->get_InitCov()), m_sva(m_psysmat->get_InitSV())
         {
             m_psysmat->set_States(&m_sv);
         }
         Filter(const Filter<tlist_t>&) = delete;
-        // p.146 eq(4.2.17)
+        // K = (P-)(C^T)( C(P-)(C^T) + HR(H^T) )
         void ComputeGain()
         {
             MatC C = m_psysmat->get_C();
             MatR R = m_psysmat->get_R();
-            m_gain = (m_eca * T(C)) * Inv(((C * m_eca) * T(C)) + R);
+            MatH H = m_psysmat->get_H();
+            m_gain = (m_eca * T(C)) * Inv(((C * m_eca) * T(C)) + (H * R) * T(H));
             Print(m_gain);
         }
-        // p.144 eq(4.2.8)
-        void UpdateEstimate(const VecY& y)
+        // x = (x-) + K(y - C(x-) - Du)
+        void UpdateEstimate(const VecY& y, const VecU& u)
         {
             MatC C = m_psysmat->get_C();
-            m_sv = m_sva + (m_gain * (y - (C * m_sva)));
+            MatD D = m_psysmat->get_D();
+            m_sv = m_sva + m_gain * (y - C * m_sva - D * u);
             Print(m_sv);
         }
-        // p.146 eq(4.2.18)
+        // P = (I-KC)(P-)(I-KC)^T + KHR(H^T)(K^T)
         void ComputeCovariance()
         {
             MatC C = m_psysmat->get_C();
             MatR R = m_psysmat->get_R();
+            MatH H = m_psysmat->get_H();
             MatP I = I(m_eca);
             MatP parenth = I - (m_gain*C);
-            MatP prod = (m_gain * R) * T(m_gain);
+            MatP prod = (((m_gain * H) * R) * T(H)) * T(m_gain);
             m_ec = ((parenth * m_eca) * T(parenth)) + prod;
             Print(m_ec);
         }
-        // assignment 5 prob.2 f) and g)
+        // (x-) = Ax + Bu
+        // (P-) = AP(A^T) + GQ(G^T)
         void ProjectAhead(const VecU& u)
         {
             MatA A = m_psysmat->get_A();

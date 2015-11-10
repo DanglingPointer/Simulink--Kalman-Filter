@@ -11,7 +11,7 @@ int main()
     Matrix<1, 1> y, u;
     y(0, 0) = 1;
     u(0, 0) = 1;
-    f->UpdateEstimate(y);
+    f->UpdateEstimate(y, u);
     f->ComputeCovariance();
     f->ProjectAhead(u);
 

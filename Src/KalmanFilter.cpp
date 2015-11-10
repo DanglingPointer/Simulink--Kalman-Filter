@@ -1,8 +1,8 @@
-/*
- * Incorporation of filter into a Simulink S-function
- * using Simulink API.
- * This file is to be compiled to a mex-file
- */
+//
+// Incorporation of filter for a particular system into
+// a Simulink S-function using Simulink/Matlab API.
+// This file is to be compiled to a mex-file
+// 
 #include"filter.h"
 #include"udf.h"
 #define S_FUNCTION_NAME KalmanFilter
@@ -34,7 +34,8 @@ static void mdlInitializeSizes(SimStruct *S)
 	
 	ssSetSimStateCompliance(S, USE_CUSTOM_SIM_STATE);
 
-	ssSetOptions(S, SS_OPTION_CALL_TERMINATE_ON_EXIT | SS_OPTION_WORKS_WITH_CODE_REUSE);
+	ssSetOptions(S, SS_OPTION_CALL_TERMINATE_ON_EXIT | SS_OPTION_WORKS_WITH_CODE_REUSE |
+                 SS_OPTION_RUNTIME_EXCEPTION_FREE_CODE);
 }
 #define MDL_INITIALIZE_SAMPLE_TIMES
 static void mdlInitializeSampleTimes(SimStruct *S)
@@ -71,13 +72,13 @@ static void mdlOutputs(SimStruct *S, int_T task_id)
 	InputRealPtrsType input = ssGetInputPortRealSignalPtrs(S, 0);
 	double inputs[2] = 
 	{ (double)(*input[0]) , (double)(*input[1]) };  // let's hope they are convertible
-	Matrix<1,1> y;
-	y(0, 0) = inputs[0];                         // measurement is first input
-	Matrix<1,1> u;
-	u(0, 0) = inputs[1];                         // reference signal is second input
+	Filter<Dim>::VecY y;
+	y(0, 0) = inputs[0];                            // measurement is first input
+    Filter<Dim>::VecU u;
+	u(0, 0) = inputs[1];                            // reference signal is second input
 
 	// Step 2:
-	pf->UpdateEstimate(y);
+	pf->UpdateEstimate(y, u);
 
 	// Step 3:
 	pf->ComputeCovariance();
@@ -86,7 +87,7 @@ static void mdlOutputs(SimStruct *S, int_T task_id)
 	pf->ProjectAhead(u);
 
 	// Updating time:
-	double time = (double)ssGetT(S);
+	double time = (double)(ssGetT(S));
 	pf->set_Time(time);
 
 	// Setting outputs:

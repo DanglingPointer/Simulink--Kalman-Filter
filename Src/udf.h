@@ -1,9 +1,10 @@
 #pragma once
+// 
+// Non-generic functionalities implemented by user for a particuar system
+//
 #include"filter.h"
 using namespace mvkf;
-
 typedef Matlist<5, 1, 1, 2, 1> Dim;
-
 class Sysmat :public ISysmat<Dim>
 {
 public:
@@ -23,8 +24,8 @@ public:
         m_b(2, 0) = 9.965e-06;
         m_b(3, 0) = 0.0001993;
 
-        m_c(0, 1) = 1;
-        m_c(0, 2) = 1;
+        m_c(0, 1) = 1.0;
+        m_c(0, 2) = 1.0;
 
         m_d(0, 0) = 0.0;
 

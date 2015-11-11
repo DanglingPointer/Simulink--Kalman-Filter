@@ -55,10 +55,10 @@ static void mdlStart(SimStruct *S)
 //#define MDL_UPDATE
 //static void mdlUpdate(SimStruct *S, int_T tid)    // mdlUpdate() shouldn't be here as 
 //{                                                 // we have direct feedthrough and 
-//	Filter *pf = (Filter*)ssGetPWork(S)[0];         // no discrete states
-//	double time = (double)ssGetT(S);                // We don't use state vectors either
-//	pf->ProjectAhead();
-//	pf->set_Time(time);
+//    Filter *pf = (Filter*)ssGetPWork(S)[0];       // no discrete states
+//    double time = (double)ssGetT(S);              // We don't use state vectors either
+//    pf->ProjectAhead();
+//    pf->set_Time(time);
 //}
 #define MDL_OUTPUTS
 static void mdlOutputs(SimStruct *S, int_T task_id)

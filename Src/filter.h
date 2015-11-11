@@ -1,7 +1,7 @@
 #pragma once
 //
 // Generic Kalman filter, no use of Simulink/Matlab API
-// User has to provide arguments for Matlist and implement a concretization of ISysmat
+// User has to provide arguments for Mattypes and implement a concretization of ISysmat
 //
 // System must be put on the form:
 // x[k+1] = A*x[x] + B*u[k] + G*w[k]    E{ww^T} = Q
@@ -10,9 +10,9 @@
 #include"matrix.h"
 namespace mvkf
 {
-    // Typelist for obtaining matrix types from vector dimensions
+    // Type wrapper for obtaining matrix types from vector dimensions
     template<uint x_dim, uint u_dim, uint y_dim, uint w_dim, uint v_dim>
-    struct Matlist
+    struct Mattypes
     {
         typedef Matrix<x_dim, x_dim> MatA;
         typedef Matrix<x_dim, x_dim> MatP;
@@ -28,7 +28,7 @@ namespace mvkf
         typedef Matrix<u_dim, 1> VecU;
         typedef Matrix<y_dim, 1> VecY;
     };
-    // To be implemented by user; 'tlist_t' must be a parametrized Matlist
+    // To be implemented by user; 'tlist_t' must be a parametrized Mattypes
     template<class tlist_t> class ISysmat
     {
     public:

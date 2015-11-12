@@ -1,7 +1,7 @@
 //
 // Incorporation of filter for a particular system into
 // a Simulink S-function using Simulink/Matlab API.
-// This file is to be compiled to a mex-file
+// This file is to be compiled as a mex-file
 // 
 #include"filter.h"
 #include"udf.h"

@@ -74,16 +74,6 @@ namespace mvkf
     }
 
 #define Coeff(j,k) ( ((j+k) % 2 == 0) ? 1:-1 )
-#define Det(mat) MatOperation::Determinant(mat)
-#define Inv(mat) MatOperation::Inverse(mat)
-#define T(mat) MatOperation::Transpose(mat)
-#define I(mat) MatOperation::Identity(mat)
-#ifdef _DEBUG
-#define Print(mat) MatOperation::SendToStream(mat, std::cout)
-#else
-#define Print(mat)
-#endif
-    // Matrix operations
     class MatOperation
     {
     public:
@@ -182,4 +172,13 @@ namespace mvkf
             return temp;
         }
     };
+#define Det(mat)    MatOperation::Determinant(mat)
+#define Inv(mat)    MatOperation::Inverse(mat)
+#define T(mat)      MatOperation::Transpose(mat)
+#define I(mat)      MatOperation::Identity(mat)
+#ifdef _DEBUG
+ #define Print(mat) MatOperation::SendToStream(mat, std::cout)
+#else
+ #define Print(mat)
+#endif
 }

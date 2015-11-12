@@ -34,7 +34,7 @@ static void mdlInitializeSizes(SimStruct *S)
 	
 	ssSetSimStateCompliance(S, USE_CUSTOM_SIM_STATE);
 
-	ssSetOptions(S, SS_OPTION_CALL_TERMINATE_ON_EXIT | SS_OPTION_WORKS_WITH_CODE_REUSE |
+	ssSetOptions(S, SS_OPTION_WORKS_WITH_CODE_REUSE |
                  SS_OPTION_RUNTIME_EXCEPTION_FREE_CODE);
 }
 #define MDL_INITIALIZE_SAMPLE_TIMES

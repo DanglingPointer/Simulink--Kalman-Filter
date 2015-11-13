@@ -73,9 +73,9 @@ static void mdlOutputs(SimStruct *S, int_T task_id)
 	double inputs[2] = 
 	{ (double)(*input[0]) , (double)(*input[1]) };  // let's hope they are convertible
 	Filter<Dim>::VecY y;
-	y(0, 0) = inputs[0];                            // measurement is first input
+	y(0) = inputs[0];                            // measurement is first input
     Filter<Dim>::VecU u;
-	u(0, 0) = inputs[1];                            // reference signal is second input
+	u(0) = inputs[1];                            // reference signal is second input
 
 	// Step 2:
 	pf->UpdateEstimate(y, u);

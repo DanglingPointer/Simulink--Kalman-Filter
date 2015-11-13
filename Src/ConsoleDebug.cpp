@@ -14,8 +14,8 @@ int main()
         f->ComputeGain();
         Matrix<1, 1> y, u;
         double sign = (rand() % 2 == 1) ? -1 : 1;
-        y(0, 0) = 1.0 + sign * (double)rand() / RAND_MAX;
-        u(0, 0) = 1.0;
+        y(0) = 1.0 + sign * (double)rand() / RAND_MAX;
+        u(0) = 1.0;
         std::cout << "\nState estimates:\n";
         f->UpdateEstimate(y, u);
         std::cout << "\nCovariance:\n";

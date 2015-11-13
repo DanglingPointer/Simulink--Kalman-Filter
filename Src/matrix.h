@@ -23,11 +23,11 @@ namespace mvkf
         {
             std::memcpy(m_data, rhs.m_data, sizeof m_data);
         }
-        double& operator()(uint row, uint col)
+        double& operator()(uint row, uint col = 0)
         {
             return m_data[row*ncol + col];
         }
-        const double& operator()(uint row, uint col) const
+        const double& operator()(uint row, uint col = 0) const
         {
             return m_data[row*ncol + col];
         }

@@ -1,12 +1,48 @@
 #pragma once
 // Generic matrix implementation using templates
 #include<iostream>
+#include<initializer_list>
 #include<cstring>
 namespace mvkf
 {
     typedef unsigned int uint;
+
+    template<class T> struct PtrWrapper
+    {
+        PtrWrapper(T *ptr) :m_ptr(ptr)
+        { }
+        virtual const std::initializer_list<T>& operator=(const std::initializer_list<T>&) = 0;
+    protected:
+        T* m_ptr;
+    };
     template<uint nrow, uint ncol> class Matrix
     {
+        struct RowPtrWrapper :PtrWrapper<double>    // not for user
+        {
+            RowPtrWrapper(double *ptr) :PtrWrapper<double>(ptr)
+            { }
+            const std::initializer_list<double>& operator=(const std::initializer_list<double>& l)
+            {
+                uint size = (l.size() < ncol) ? l.size() : ncol;
+                std::memcpy(m_ptr, l.begin(), size*sizeof(double));
+                return l;
+            }
+        };
+        struct ColPtrWrapper :PtrWrapper<double>    // not for user
+        {
+            ColPtrWrapper(double *ptr) :PtrWrapper<double>(ptr)
+            { }
+            const std::initializer_list<double>& operator=(const std::initializer_list<double>& l)
+            {
+                uint size = (l.size() < nrow) ? l.size() : nrow;
+                for (uint i = 0; i < size; ++i)
+                {
+                    *(m_ptr) = *(l.begin() + i);
+                    m_ptr += ncol;
+                }
+                return l;
+            }
+        };
     public:
         typedef Matrix<nrow, ncol> myt;
         enum
@@ -15,9 +51,13 @@ namespace mvkf
             NUMCOL = ncol
         };
         Matrix()
+        { }
+        Matrix(const std::initializer_list<double>& l)
         {
-            for (uint i = 0; i < nrow*ncol; ++i)
-                m_data[i] = 0;
+            if (l.size() < nrow*ncol)
+                std::memcpy(m_data, l.begin(), l.size()*sizeof(double));
+            else
+                std::memcpy(m_data, l.begin(), sizeof m_data);
         }
         Matrix(const myt& rhs)
         {
@@ -30,6 +70,14 @@ namespace mvkf
         const double& operator()(uint row, uint col = 0) const
         {
             return m_data[row*ncol + col];
+        }
+        RowPtrWrapper Row(uint rownum)  // f.ex. mymat.Row(0) = { 1,2,3 };
+        {
+            return m_data + rownum*ncol;
+        }
+        ColPtrWrapper Col(uint colnum)  // f.ex. mymat.Col(0) = { 1,2,3 };
+        {
+            return m_data + colnum;
         }
         template<uint col2> Matrix<nrow, col2> operator*(const Matrix<ncol, col2>& rhs) const
         {   // row2 = col1
@@ -66,7 +114,7 @@ namespace mvkf
             return result;
         }
     private:
-        double m_data[nrow*ncol];
+        double m_data[nrow*ncol]{ };
     };
     template<uint nrow, uint ncol> Matrix<nrow, ncol> operator*(double factor, const Matrix<nrow, ncol>& rhs)
     {

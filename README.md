@@ -3,7 +3,7 @@ Generic implementation of [Kalman filter](https://en.wikipedia.org/wiki/Kalman_f
 
 The C++ code consist of the following files:
 * `matrix.h`: implementation of matrices which may be reused for other purposes
-* `filter.h`: implementation of the Kalman filter, may be used for any linear system. User has to parametrize the `Mattypes` type wrapper as well as implement an instantiation of the `ISysmat` interface
+* `filter.h`: implementation of the Kalman filter, may be used for any linear system. User has to parametrize the `Mattypes` type wrapper and implement a realization of the `ISysmat` interface
 * `udf.h`: user-defined functionalities described above, implemented for the particuar system
 * `KalmanFilter.cpp`: integration with Simulink/Matlab API, to be compiled as a mex-file in order to use in a Simulink S-function
 * `ConsoleDebug.cpp`: for testing the filter in Visual Studio, should be ignored otherwise. When used, the content of the `KalmanFilter.cpp` should be commented out

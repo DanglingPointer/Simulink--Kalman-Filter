@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Kalman filter
 Generic implementation of [Kalman filter](https://en.wikipedia.org/wiki/Kalman_filter) written in C++ and integrated with Simulink Api in order to be used as a Simulink S-function for a particular linearized system. The compiled mex-file as well as Matlab and Simulink files are to be found in the folder `Simulink&Matlab/`. 
 

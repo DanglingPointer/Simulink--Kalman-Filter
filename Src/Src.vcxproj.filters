@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConsoleDebug.cpp">
+    <ClCompile Include="src\ConsoleDebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KalmanFilter.cpp">
+    <ClCompile Include="src\KalmanFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matrix.h">
+    <ClInclude Include="include\filter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filter.h">
+    <ClInclude Include="include\matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="udf.h">
+    <ClInclude Include="include\udf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

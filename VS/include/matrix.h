@@ -151,7 +151,7 @@ namespace mvkf
                     Matrix<size - 1, size - 1> min = Minormat(mat, row, col);
                     cf(row, col) = Coeff(row, col) * Determinant(min);
                 }
-            Matrix<size, size> inv = T(cf);
+            Matrix<size, size> inv = Transpose(cf);
             double detA = Determinant(mat);
             for (uint row = 0; row < size; ++row)
                 for (uint col = 0; col < size; ++col)
